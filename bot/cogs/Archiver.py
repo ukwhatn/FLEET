@@ -80,7 +80,7 @@ class Archiver(commands.Cog):
                 for user in users:
                     cur.execute(
                             "INSERT INTO Users (id, name, discriminator, avatar_url) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE name=VALUES(name), discriminator=VALUES(discriminator), avatar_url=VALUES(avatar_url)",
-                            (user.id, user.name, user.discriminator, user.avatar.url))
+                            (user.id, user.name, user.discriminator, user.avatar.url if user.avatar is not None else None))
             connection.commit()
         except Exception as e:
             connection.rollback()
