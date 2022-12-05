@@ -9,7 +9,7 @@ from discord.ext import commands
 
 class Archiver(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: discord.Bot = bot
 
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ class Archiver(commands.Cog):
                                                                                                                                                      threads async for message
                                                                                                                                                      in
                                                                                                                                                      thread.history(
-                                                                                                                                                         limit=None)]
+                                                                                                                                                             limit=None)]
         await msg.followup.send("[Progress] Creating Attachment Data....")
         attachment_data = [(message.id, attachment, await attachment.read()) for message in messages for attachment in message.attachments]
 
@@ -141,6 +141,38 @@ class Archiver(commands.Cog):
         con.close()
 
         await msg.followup.send("Done!")
+
+    async def update_single_message_data(self, message: discord.Message):
+        guilds = [message.guild]
+        if isinstance(message.channel, discord.abc.GuildChannel):
+            channels = [message.channel]
+            threads = []
+        elif isinstance(message.channel, discord.Thread):
+            threads = [message.channel]
+            channels = [message.channel.parent]
+        else:
+            return
+        messages = [message]
+        attachment_data = [(message.id, attachment, await attachment.read()) for attachment in message.attachments]
+        users = [message.author]
+
+        con = self.create_db_connection()
+        self.update_guild_data(guilds, con)
+        self.update_channel_data(channels, con)
+        self.update_thread_data(threads, con)
+        self.update_message_data(messages, con)
+        self.update_message_attachments_data(attachment_data, con)
+        self.update_user_data(users, con)
+        con.close()
+
+    @commands.Cog.listener(name="on_message")
+    async def on_message(self, message: discord.Message):
+        await self.update_single_message_data(message)
+
+    @commands.Cog.listener(name="on_raw_message_edit")
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
+        message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+        await self.update_single_message_data(message)
 
 
 def setup(bot):
