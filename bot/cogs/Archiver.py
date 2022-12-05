@@ -112,7 +112,7 @@ class Archiver(commands.Cog):
 
     @slash_command(name="get_all")
     async def archive_all_messages(self, ctx: discord.ApplicationContext):
-        msg = await ctx.respond("Archiving all messages...")
+        await ctx.respond("Archiving all messages...", ephemeral=True)
         self.logger.info(f"[Start] {ctx.guild.name}")
         guilds = [ctx.guild]
         self.logger.info("[Progress] Acquiring Channels....")
@@ -141,8 +141,7 @@ class Archiver(commands.Cog):
         self.update_user_data(users, con)
         con.close()
 
-        self.logger.info("Done!")
-        await msg.edit(content="Done!")
+        self.logger.info("[Progress] Done")
 
     async def update_single_message_data(self, message: discord.Message):
         guilds = [message.guild]
