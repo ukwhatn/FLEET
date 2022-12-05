@@ -113,24 +113,25 @@ class Archiver(commands.Cog):
     @slash_command(name="get_all")
     async def archive_all_messages(self, ctx: discord.ApplicationContext):
         msg = await ctx.respond("Archiving all messages...")
+        self.logger.info(f"[Start] {ctx.guild.name}")
         guilds = [ctx.guild]
-        await msg.followup.send("[Progress] Acquiring Channels....")
+        self.logger.info("[Progress] Acquiring Channels....")
         channels = ctx.guild.channels
-        await msg.followup.send("[Progress] Acquiring Threads....")
+        self.logger.info("[Progress] Acquiring Threads....")
         threads = [thread for channel in channels if isinstance(channel, discord.TextChannel) for thread in channel.threads]
-        await msg.followup.send("[Progress] Acquiring Messages....")
+        self.logger.info("[Progress] Acquiring Messages....")
         messages = [message for channel in channels if isinstance(channel, discord.TextChannel) async for message in channel.history(limit=None)] + [message for thread in
                                                                                                                                                      threads async for message
                                                                                                                                                      in
                                                                                                                                                      thread.history(
                                                                                                                                                              limit=None)]
-        await msg.followup.send("[Progress] Creating Attachment Data....")
+        self.logger.info("[Progress] Creating Attachment Data....")
         attachment_data = [(message.id, attachment, await attachment.read()) for message in messages for attachment in message.attachments]
 
-        await msg.followup.send("[Progress] Acquiring Users....")
+        self.logger.info("[Progress] Acquiring Users....")
         users = [message.author for message in messages]
 
-        await msg.followup.send("[Progress] Dumping....")
+        self.logger.info("[Progress] Dumping....")
         con = self.create_db_connection()
         self.update_guild_data(guilds, con)
         self.update_channel_data(channels, con)
@@ -140,7 +141,8 @@ class Archiver(commands.Cog):
         self.update_user_data(users, con)
         con.close()
 
-        await msg.followup.send("Done!")
+        self.logger.info("Done!")
+        await msg.edit(content="Done!")
 
     async def update_single_message_data(self, message: discord.Message):
         guilds = [message.guild]
