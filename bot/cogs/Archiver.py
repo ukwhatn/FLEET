@@ -17,7 +17,7 @@ class Archiver(commands.Cog):
     def create_db_connection(self) -> mysql.connector.MySQLConnection:
         return mysql.connector.connect(
                 host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT"),
+                port=int(os.getenv("DB_PORT")),
                 user=os.getenv("DB_USER"),
                 password=os.getenv("DB_PASSWORD"),
                 database=os.getenv("DB_NAME"),
